@@ -1,0 +1,11 @@
+train_doc2vec
+-i
+../data/dataset.csv
+-o
+../vectorizer_models/doc2vec/only_datasetText_d2v.model
+-c
+Tokenized_Text
+--epochs
+200
+--min_count
+50
