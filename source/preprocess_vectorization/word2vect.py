@@ -16,14 +16,19 @@ cores = multiprocessing.cpu_count()
 
 
 def train_doc2vec(input_dataframe: Union[str, DataFrame], output_file: str = None, text_column: str = 'Text', features: int = 200, window: int = 5, epochs: int = 20, dm: int = 1, dbow_words: int = 0, min_count: int = 20):
+    # Comprobamos si es un dataframe o un path, si es un path cargamos el archivo
     if isinstance(input_dataframe, str):
         input_dataframe = pd.read_csv(input_dataframe)
 
+    # Preparamos los archivos en el formato requerido por gensim
     documents = [TaggedDocument(doc.split(), [i]) for i, doc in input_dataframe[text_column].iteritems()]
+
+    # Preparamos el modelo y lo entrenamos
     model = Doc2Vec(vector_size=features, epochs=epochs, min_count=min_count, window=window, dm=dm, dbow_words=dbow_words, workers=cores)
     model.build_vocab(documents)
     model.train(documents, total_examples=model.corpus_count, epochs=model.epochs)
 
+    # Generamos la carpeta padre y guardamos el modelo
     if output_file:
         Path(output_file).parent.mkdir(exist_ok=True)
         model.save(output_file)
@@ -32,13 +37,18 @@ def train_doc2vec(input_dataframe: Union[str, DataFrame], output_file: str = Non
 
 
 def vectorize_doc2vec(input_dataframe: Union[str, DataFrame], model: Union[str, Doc2Vec], text_column: str = 'Text', output_file: str = None):
+    # Comprobamos si es un dataframe o un path, si es un path cargamos el archivo
     if isinstance(input_dataframe, str):
         input_dataframe = pd.read_csv(input_dataframe)
+
+    # Comprobamos si es un modelo o un path, si es un path cargamos el modelo
     if isinstance(model, str):
         model = Doc2Vec.load(model)
 
+    # Vectorizamos los textos
     vectorized_documents = np.asarray([model.infer_vector(doc.split()) for _, doc in input_dataframe[text_column].iteritems()])
 
+    # Generamos la carpeta padre y guardamos el resultado
     if output_file:
         Path(output_file).parent.mkdir(exist_ok=True)
         np.save(output_file, vectorized_documents)
@@ -56,7 +66,7 @@ if __name__ == '__main__':
 
     # Train Tf-Idf arguments
     fit_doc2vec_args = subparsers.add_parser('train_doc2vec', help='Train a new doc2vec with the given data.')
-    fit_doc2vec_args.add_argument('-i', '--input_file', type=str, required=True, help='Input csv file containing training texts.')
+    fit_doc2vec_args.add_argument('-i', '--input_dataframe', type=str, required=True, help='Input csv file containing training texts.')
     fit_doc2vec_args.add_argument('-o', '--output_file', type=str, required=True, help='Output file where model will be saved. IT MUST BE A FULL PATH, NOT RELATIVE.')
     fit_doc2vec_args.add_argument('-c', '--text_column', type=str, default='Text', required=False, help="Name of the data column containing the texts.")
 

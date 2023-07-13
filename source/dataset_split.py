@@ -1,7 +1,7 @@
 # Código original obtenido de StackOverflow, después adaptado para añadir funcionalidades
 # Usuario: stackoverflowuser2010
 # Link: https://stackoverflow.com/questions/50781562/stratified-splitting-of-pandas-dataframe-into-training-validation-and-test-set
-
+import argparse
 import os
 from math import fsum
 from typing import Union
@@ -10,7 +10,7 @@ from pandas import DataFrame
 from sklearn.model_selection import train_test_split
 
 
-def split_stratified_into_train_val_test(df_input: Union[str, DataFrame], stratify_colname: str = 'label', frac_train: float = 0.6, frac_val: float = 0.15, frac_test: float = 0.25, output_folder: str = None, output_file_base_name: str = None, random_state=None):
+def split_stratified_into_train_val_test(df_input: Union[str, DataFrame], stratify_colname: str = 'label', frac_train: float = 0.6, frac_val: float = 0.25, frac_test: float = 0.15, output_folder: str = None, output_file_base_name: str = None, random_state: int = None):
     """
     Splits a Pandas dataframe into three subsets (train, val, and test)
     following fractional ratios provided by the user, where each subset is
@@ -80,4 +80,16 @@ def split_stratified_into_train_val_test(df_input: Union[str, DataFrame], strati
 
 if __name__ == '__main__':
     # TODO: Hacer todo el argparse
-    pass
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-i', '--df_input', type=str, required=True, help='Input dataframe to be split. Or path to the dataframe csv.')
+    parser.add_argument('-c', '--stratify_colname', type=str, required=False, default='label', help='The name of the column that will be used for stratification.')
+    parser.add_argument('--frac_train', type=float, required=False, default=0.6, help='The ratio of the dataframe will be split into train.')
+    parser.add_argument('--frac_val', type=float, required=False, default=0.25, help='The ratio of the dataframe will be split into validation.')
+    parser.add_argument('--frac_test', type=float, required=False, default=0.15, help='The ratio of the dataframe will be split into test.')
+    parser.add_argument('-o', '--output_folder', type=str, required=True, help='Optional output folder where partitions will be saved.')
+    parser.add_argument('-n', '--output_file_base_name', type=str, required=True, help="Output files' base name. Example: 'dataset', then the next files will be created: dataset.train.csv, dataset.dev.csv, dataset.test.csv")
+    parser.add_argument('-r', '--random_state', type=int, required=False, default=None, help='Value to be passed to train_test_split().')
+
+    args = parser.parse_args()
+
+    split_stratified_into_train_val_test(**vars(args))

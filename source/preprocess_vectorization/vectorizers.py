@@ -2,6 +2,7 @@ import argparse
 import json
 import os
 from glob import glob as get_files
+from pathlib import Path
 from typing import Union
 
 import numpy as np
@@ -12,7 +13,7 @@ from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from tqdm import tqdm
 
 
-def _generate_tfidf(data: [str], model: str, output: str, min_ngrams: int = 1, max_ngrams: int = 1,
+def generate_tfidf(data: [str], model: str, output: str, min_ngrams: int = 1, max_ngrams: int = 1,
                     min_df: Union[int, float] = 1, max_df: Union[int, float] = 0.9, max_features: int = None,
                     sublinear_tf: bool = False) -> ndarray:
     """
@@ -26,7 +27,7 @@ def _generate_tfidf(data: [str], model: str, output: str, min_ngrams: int = 1, m
     model : str
         Folder where the generated models will be allocated / loaded
     output : str
-        Folder where vectorized corpus will be allocated
+        File where vectorized corpus will be allocated
     min_ngrams : int
         The lower boundary of the range of n-values for different n-grams to be extracted
     max_ngrams : int
@@ -56,13 +57,12 @@ def _generate_tfidf(data: [str], model: str, output: str, min_ngrams: int = 1, m
         save_model(tf_idf_model, model_file)
 
     # Guardamos el texto vectorizado
-    with open(output + os.path.sep + 'tfidf_vectorized_corpus.npy', 'wb') as file_handler:
-        np.save(file_handler, vectorized_corpus_matrix)
+    np.save(output, vectorized_corpus_matrix)
 
     return vectorized_corpus_matrix
 
 
-def _generate_lda(data: [str], model: str, output: str, iterations: int = 10000, topics: int = 200, alpha=None,
+def generate_lda(data: [str], model: str, output: str, iterations: int = 10000, topics: int = 200, alpha=None,
                   beta=None) -> ndarray:
     """
     Generates lda and saves it. It also transforms data.
@@ -75,7 +75,7 @@ def _generate_lda(data: [str], model: str, output: str, iterations: int = 10000,
     model : str
         Folder where the generated models will be allocated / loaded
     output : str
-        Folder where vectorized corpus will be allocated
+        File where vectorized corpus will be allocated
     iterations : int
         Max iterations for LDA
     topics : int
@@ -112,13 +112,12 @@ def _generate_lda(data: [str], model: str, output: str, iterations: int = 10000,
     vectorized_corpus_matrix = lda_model.transform(matriz_frequencias_corpus)
 
     # Guardamos el texto vectorizado
-    with open(output + os.path.sep + 'lda_vectorized_corpus.npy', 'wb') as file_handler:
-        np.save(file_handler, vectorized_corpus_matrix)
+    np.save(output, vectorized_corpus_matrix)
 
     return vectorized_corpus_matrix
 
 
-def _transform_tfidf(data: [str], model: str, output: str) -> ndarray:
+def transform_tfidf(data: [str], model: str, output: str) -> ndarray:
     """
     Transform data using tfidf
 
@@ -130,7 +129,7 @@ def _transform_tfidf(data: [str], model: str, output: str) -> ndarray:
     model : str
         Folder where the generated models will be allocated / loaded
     output : str
-        Folder where vectorized corpus will be allocated
+        File where vectorized corpus will be allocated
 
     Returns
     -------
@@ -145,13 +144,12 @@ def _transform_tfidf(data: [str], model: str, output: str) -> ndarray:
     vectorized_corpus_matrix = model.transform(data).toarray()
 
     # Guardamos el texto vectorizado
-    with open(output + os.path.sep + 'tfidf_vectorized_corpus.npy', 'wb') as file_handler:
-        np.save(file_handler, vectorized_corpus_matrix)
+    np.save(output, vectorized_corpus_matrix)
 
     return vectorized_corpus_matrix
 
 
-def _transform_lda(data: [str], model: str, output: str) -> ndarray:
+def transform_lda(data: [str], model: str, output: str) -> ndarray:
     """
     Transform data using lda
 
@@ -163,7 +161,7 @@ def _transform_lda(data: [str], model: str, output: str) -> ndarray:
     model : str
         Folder where the generated models will be allocated / loaded
     output : str
-        Folder where vectorized corpus will be allocated
+        File where vectorized corpus will be allocated
 
    Returns
     -------
@@ -184,20 +182,19 @@ def _transform_lda(data: [str], model: str, output: str) -> ndarray:
     vectorized_corpus_matrix = lda_vectorizer.transform(data)
 
     # Guardamos el texto vectorizado
-    with open(output + os.path.sep + 'lda_vectorized_corpus.npy', 'wb') as file_handler:
-        np.save(file_handler, vectorized_corpus_matrix)
+    np.save(output, vectorized_corpus_matrix)
 
     return vectorized_corpus_matrix
 
 
 generate_vectorizer_methods = {
-    'tf-idf': _generate_tfidf,
-    'lda': _generate_lda
+    'tf-idf': generate_tfidf,
+    'lda': generate_lda
 }
 
 transform_methods = {
-    'tf-idf': _transform_tfidf,
-    'lda': _transform_lda
+    'tf-idf': transform_tfidf,
+    'lda': transform_lda
 }
 
 
@@ -211,7 +208,7 @@ def vectorize_dataset(input: str, output: str, model: str, command: str, vectori
     input : str
         Input folder containing  text files
     output : str
-        Folder where vectorized corpus will be allocated
+        File where vectorized corpus will be allocated
     model : str
         Folder where the generated models will be allocated / loaded
     command : str
@@ -228,7 +225,7 @@ def vectorize_dataset(input: str, output: str, model: str, command: str, vectori
         Vectorized corpus
     """
     # Creamos las carpetas de output en caso de que no existan
-    os.makedirs(output, exist_ok=True)
+    Path(output).parent.mkdir(exist_ok=True)
     os.makedirs(model, exist_ok=True)
 
     # Array donde irán todos los textos
@@ -236,7 +233,7 @@ def vectorize_dataset(input: str, output: str, model: str, command: str, vectori
 
     # Buscamos los ficheros en la carpeta
     document_list = get_files(input + os.path.sep + '*' + extension)
-    with open(output + os.path.sep + 'vectorized_files_path_mapping_list.json', 'w') as file:
+    with open(str(Path(output).parent) + os.path.sep + 'vectorized_files_path_mapping_list.json', 'w') as file:
         json.dump(document_list, file)
 
     for input_file_path in tqdm(document_list):
@@ -270,8 +267,7 @@ if __name__ == '__main__':
 
     # Argumentos genéricos
     parser.add_argument('-i', '--input', type=str, required=True, help='Input folder containing  text files.')
-    parser.add_argument('-o', '--output', type=str, required=True,
-                        help='Folder where vectorized corpus will be allocated.')
+    parser.add_argument('-o', '--output', type=str, required=True, help='File where vectorized corpus will be allocated.')
     parser.add_argument('-m', '--model', type=str, required=True,
                         help='Folder where the generated models will be allocated / loaded.')
     parser.add_argument('-v', '--vectorizer', type=str, choices=['tf-idf', 'lda'], required=True,
