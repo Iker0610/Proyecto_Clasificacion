@@ -1,0 +1,18 @@
+{
+  "0": "Description",
+  "1": "Sintomas",
+  "2": "Causas",
+  "3": "FactoresRiesgo",
+  "4": "Complicaciones",
+  "5": "Prevencion",
+  "6": "Diagnostico",
+  "7": "Tratamiento",
+  "Description": 0,
+  "Sintomas": 1,
+  "Causas": 2,
+  "FactoresRiesgo": 3,
+  "Complicaciones": 4,
+  "Prevencion": 5,
+  "Diagnostico": 6,
+  "Tratamiento": 7
+}
