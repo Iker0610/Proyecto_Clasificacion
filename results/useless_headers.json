@@ -1,0 +1,16 @@
+[
+  "experiment_id",
+  "time_this_iter_s",
+  "training_iteration",
+  "date",
+  "hostname",
+  "node_ip",
+  "timestamp",
+  "done",
+  "timesteps_total",
+  "episodes_total",
+  "pid",
+  "time_since_restore",
+  "timesteps_since_restore",
+  "iterations_since_restore"
+]
